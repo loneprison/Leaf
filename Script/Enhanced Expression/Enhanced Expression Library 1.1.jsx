@@ -852,96 +852,96 @@ var LayerExtra = function () {
         }
         //合起来是线性变换
         return {
-            位置:位置结果，
-            旋转:旋转结果，
-            规模:scaleResult
+            position: positionResult,
+            rotation: rotationResult,
+            scale: scaleResult,
         }
     }
 
-    //设置属性父级（帧数)//
-模块。setParentPropertyAtFrame = 功能 (目标层, 延迟帧, 方式) {
-        定义变量 父母地位= targetLayer。改变.位置;
-        定义变量 双亲轮换= targetLayer。改变.旋转;
-        定义变量 父母规模= targetLayer。改变.规模;
-        如果 (模式==未定义)模式=“分开”;
+    //设置属性父级(帧数)//
+    module.setParentPropertyAtFrame = function (targetLayer, delayFrame, mode) {
+        var parentPosition = targetLayer.transform.position;
+        var parentRotation = targetLayer.transform.rotation;
+        var parentScale = targetLayer.transform.scale;
+        if (mode == undefined) mode = "separate";
         //线性平移
-delayFrame = delayFrame ||0;//时间
-        定义变量 位置结果=这一层。改变.位置.价值;
-        定义变量 旋转结果=这一层。改变.旋转.价值;
-        定义变量 规模结果=这一层。改变.规模.价值;
-        如果 (parentPosition！=未定义&& parentPosition。numKeys > 1) {
-            定义变量 位置开始时间= parentPosition。键(1).时间;
-            定义变量 parentPositionChanged = 潜水艇(PropertyExtra。valueAtFrame(父位置，帧-延迟帧)，PropertyExtra。valueAtFrame(父位置，位置开始时间));
-positionResult = VectorMathExtra。运输(亲子关系。valueAtTime(这层。时间-延迟帧)，positionResult，parentPositionChanged);
+        delayFrame = delayFrame || 0;//时间
+        var positionResult = thisLayer.transform.position.value;
+        var rotationResult = thisLayer.transform.rotation.value;
+        var scaleResult = thisLayer.transform.scale.value;
+        if (parentPosition != undefined && parentPosition.numKeys > 1) {
+            var positionStartTime = parentPosition.key(1).time;
+            var parentPositionChanged = sub(PropertyExtra.valueAtFrame(parentPosition, frames - delayFrame), PropertyExtra.valueAtFrame(parentPosition, positionStartTime));
+            positionResult = VectorMathExtra.transit(parentPosition.valueAtTime(thisLayer.time - delayFrame), positionResult, parentPositionChanged);
         }
         //线性旋转
-        如果 (父母轮换！=未定义&& parentRotation。numKeys > 1) {
-            定义变量 旋转开始时间= parentRotation。键(1).时间;
-            定义变量 parentRotationChanged = 潜水艇(PropertyExtra。valueAtFrame(父旋转，帧-延迟帧)，PropertyExtra。valueAtFrame(parentRotation，rotationStartTime));
-positionResult = VectorMathExtra。辐状的(PropertyExtra。valueAtFrame(父位置，帧-延迟帧)，positionResult，parentRotationChanged);
-            如果 (模式==“连接“)旋转结果=增加(rotationResult，parentRotationChanged);
+        if (parentRotation != undefined && parentRotation.numKeys > 1) {
+            var rotationStartTime = parentRotation.key(1).time;
+            var parentRotationChanged = sub(PropertyExtra.valueAtFrame(parentRotation, frames - delayFrame), PropertyExtra.valueAtFrame(parentRotation, rotationStartTime));
+            positionResult = VectorMathExtra.rotate(PropertyExtra.valueAtFrame(parentPosition, frames - delayFrame), positionResult, parentRotationChanged);
+            if (mode == "connect") rotationResult = add(rotationResult, parentRotationChanged);
         }
         //线性缩放
-        如果 (家长尺度！=未定义&& parentScale。numKeys > 1) {
-            定义变量 缩放开始时间= parentScale键(1).时间;
-            定义变量 parentScaleChanged= VectorMathExtra。划分(PropertyExtra。valueAtFrame(parentScale，frames -延迟帧)，PropertyExtra。valueAtFrame(parentScale，scaleStartTime));
-positionResult = VectorMathExtra。规模(PropertyExtra。valueAtFrame(父位置，帧-延迟帧)，positionResult，parentScaleChanged);
-            如果 (模式==“连接“)scaleResult = VectorMathExtra。多样地(scaleResult，parentScaleChanged);
+        if (parentScale != undefined && parentScale.numKeys > 1) {
+            var scaleStartTime = parentScale.key(1).time;
+            var parentScaleChanged = VectorMathExtra.divide(PropertyExtra.valueAtFrame(parentScale, frames - delayFrame), PropertyExtra.valueAtFrame(parentScale, scaleStartTime));
+            positionResult = VectorMathExtra.scale(PropertyExtra.valueAtFrame(parentPosition, frames - delayFrame), positionResult, parentScaleChanged);
+            if (mode == "connect") scaleResult = VectorMathExtra.multiply(scaleResult, parentScaleChanged);
         }
         //合起来是线性变换
-        返回 {
-            位置:位置结果，
-            旋转:旋转结果，
-            规模:scaleResult
+        return {
+            position: positionResult,
+            rotation: rotationResult,
+            scale: scaleResult,
         }
     }
 
     //打字机效果//
-模块。打字机效果 = 功能 (耽搁) {
-        如果 (延迟==未定义)延迟=0.1;
-        定义变量 潜艇用热中子反应堆（submarine thermal reactor的缩写）=文本。源文本.价值;
-        返回海峡。substr(0，数学。地面(这层。时间/延迟));
+    module.typewriterEffect = function (delay) {
+        if (delay == undefined) delay = 0.1;
+        var str = text.sourceText.value;
+        return str.substr(0, Math.floor(thisLayer.time / delay));
     }
 
     //不透明度父子级控制//
-模块。不透明度控制 = 功能 () {
-        如果 (这层。hasParent) 返回这层。父母.改变.不透明.价值*这一层。父母.使能够;
-        返回这个属性。价值;
+    module.opacityControl = function () {
+        if (thisLayer.hasParent) return thisLayer.parent.transform.opacity.value * thisLayer.parent.enabled;
+        return thisProperty.value;
     }
 
     //复合路径位移//
-模块。compositeMotionPath = 功能 (形状值, 滑动控制, 目标层) {
-target layer = target layer | | this layer；
-        定义变量 进步= MathExtra。获取剩余部分((滑块控制/100), 1);
-        定义变量 原始位置= PathPropertyExtra。getPathParameter(形状值，进度).要点;
-        定义变量 最终位置= PathPropertyExtra。getPathParameter(形状值，0).要点;
-        定义变量 抵消=这一层。潜水艇(目标杀手。toComp(原始位置)，目标层。toComp(最终位置));
-        返回这层。增加(这个属性。价值，偏移);
+    module.compositeMotionPath = function (shapeValue, sliderControl, targetLayer) {
+        targetLayer = targetLayer || thisLayer;
+        var progress = MathExtra.getRemainder((sliderControl / 100), 1);
+        var originPosition = PathPropertyExtra.getPathParameter(shapeValue, progress).point;
+        var finalPosition = PathPropertyExtra.getPathParameter(shapeValue, 0).point;
+        var offset = thisLayer.sub(targetLayer.toComp(originPosition), targetLayer.toComp(finalPosition));
+        return thisLayer.add(thisProperty.value, offset);
     }
 
-    返回模块；
+    return module;
 }()
 
-// -摄像机- //
-// - 摄像机 - //
-定义变量 CameraExtra = 功能 () {
-    定义变量 组件 = {};
+//--- Camera ---//
+//--- 摄像机 ---//
+var CameraExtra = function () {
+    var module = {};
 
     //摄像机切换//
-模块。摄像机切换 = 功能 (滑动控制, 方式) {
-        定义变量 照相机阵列 = []; //摄像机图层的数组
-        定义变量 目标层= thisLayer
-        为 (定义变量 i= targetLayer。指数 + 1；我《= thisComp。数字层；i++) {
+    module.cameraSwitching = function (sliderControl, mode) {
+        var cameraArray = []; //摄像机图层的数组
+        var targetLayer = thisLayer;
+        for (var i = targetLayer.index + 1; i <= thisComp.numLayers; i++) {
             //将指定图层下的摄像机遍历存数组
-            尝试 {
-                如果 (这个公司。层(i).相机选项)cameraArray。推(这个公司。层(i));
+            try {
+                if (thisComp.layer(i).cameraOption) cameraArray.push(thisComp.layer(i));
             }
-            捕捉 (e) { }
+            catch (e) { }
         }
-        定义变量 前一级别属性=这个属性。属性组(1).名字; //上一级属性的名字
-        定义变量 数字= MathExtra。获取剩余部分((滑动控制)，cameraArray。长度); //控制摄像机显示
-        如果 (数量《0) {
-num = num + cameraArray。长度;
+        var previousLevelProperty = thisProperty.propertyGroup(1).name; //上一级属性的名字
+        var num = MathExtra.getRemainder((sliderControl), cameraArray.length); //控制摄像机显示
+        if (num < 0) {
+            num = num + cameraArray.length;
         }
         mode = mode || "linear";
         //切换模式
@@ -2486,4 +2486,3 @@ var hidden = function () {
     }
 
 }()
-
